@@ -1,0 +1,24 @@
+[2025-05-25 06:52:39] [INFO] This is an info log.
+[2025-05-25 06:52:39] [ERROR] Something failed.
+[2025-05-25 06:54:03] [ERROR] Uncaught Exception: Call to undefined function undefined_function() in /home/Igris/Documents/Work/FAM/src/Views/home.php on line 12
+[2025-05-25 06:54:18] [ERROR] Uncaught Exception: Call to undefined function undefined_function() in /home/Igris/Documents/Work/FAM/src/Views/home.php on line 12
+[2025-05-25 07:08:26] [ERROR] Uncaught Exception: Call to undefined function undefined_function() in /home/Igris/Documents/Work/FAM/src/Views/home.php on line 12
+[2025-05-25 07:08:40] [ERROR] Uncaught Exception: Call to undefined function undefined_function() in /home/Igris/Documents/Work/FAM/src/Views/home.php on line 12
+[2025-05-25 07:08:54] [ERROR] Uncaught Exception: Call to undefined function undefined_function() in /home/Igris/Documents/Work/FAM/src/Views/home.php on line 12
+[2025-05-25 07:09:20] [ERROR] Uncaught Exception: Call to undefined function undefined_function() in /home/Igris/Documents/Work/FAM/src/Views/home.php on line 12
+[2025-05-25 07:09:29] [ERROR] Uncaught Exception: Call to undefined function undefined_function() in /home/Igris/Documents/Work/FAM/src/Views/home.php on line 12
+[2025-05-25 07:23:26] [ERROR] Uncaught Exception: Call to undefined function undefined_function() in /home/Igris/Documents/Work/FAM/src/Views/home.php on line 12
+[2025-05-25 07:23:43] [ERROR] Uncaught Exception: Call to undefined function undefined_function() in /home/Igris/Documents/Work/FAM/src/Views/home.php on line 12
+[2025-05-25 07:40:59] [ERROR] Uncaught Exception: Call to undefined function undefined_function() in /home/Igris/Documents/Work/FAM/src/Views/home.php on line 12
+[2025-05-25 07:41:15] [ERROR] Uncaught Exception: Call to undefined function undefined_function() in /home/Igris/Documents/Work/FAM/src/Views/home.php on line 12
+[2025-05-25 07:41:53] [ERROR] Uncaught Exception: Call to undefined function undefined_function() in /home/Igris/Documents/Work/FAM/src/Views/home.php on line 12
+[2025-05-25 07:42:03] [ERROR] Uncaught Exception: Call to undefined function undefined_function() in /home/Igris/Documents/Work/FAM/src/Views/home.php on line 12
+[2025-05-25 07:47:03] [ERROR] Uncaught Exception: Call to undefined function undefined_function() in /home/Igris/Documents/Work/FAM/src/Views/home.php on line 12
+[2025-05-25 07:47:21] [ERROR] Uncaught Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'login_staging_trainingpipeline.users' doesn't exist in /home/Igris/Documents/Work/FAM/src/Models/User.php on line 28
+[2025-05-25 12:34:28] [ERROR] Fatal Error: Cannot redeclare App\Controllers\AuthController::dashboard() in /home/Igris/Documents/Work/FAM/src/Controllers/AuthController.php on line 43
+[2025-05-25 12:34:52] [ERROR] Uncaught Exception: Undefined constant "App\Controllers\this" in /home/Igris/Documents/Work/FAM/src/Controllers/AuthController.php on line 39
+[2025-05-25 12:35:48] [ERROR] Uncaught Exception: Call to private method App\Core\Controller::render() from scope App\Controllers\AuthController in /home/Igris/Documents/Work/FAM/src/Controllers/AuthController.php on line 39
+[2025-05-25 12:39:23] [ERROR] Fatal Error: Cannot redeclare App\Controllers\AuthController::dashboard() in /home/Igris/Documents/Work/FAM/src/Controllers/AuthController.php on line 38
+[2025-05-25 13:05:23] [ERROR] Uncaught Exception: syntax error, unexpected token "}" in /home/Igris/Documents/Work/FAM/src/Core/Router.php on line 37
+[2025-05-25 15:29:35] [ERROR] Uncaught Exception: SQLSTATE[HY000] [1049] Unknown database 'FAM' in /home/Igris/Documents/Work/FAM/src/Models/User.php on line 12
+[2025-05-25 15:29:37] [ERROR] Uncaught Exception: SQLSTATE[HY000] [1049] Unknown database 'FAM' in /home/Igris/Documents/Work/FAM/src/Models/User.php on line 12
