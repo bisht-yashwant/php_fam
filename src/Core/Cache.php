@@ -3,7 +3,7 @@
 use App\Core\Session;
 
 class Cache {
-    protected static string $dir = __DIR__ . '/../storage/cache/';
+    protected static string $dir = __DIR__ . '/../Storage/Cache/';
 
     public static function get(string $key): mixed {
         $file = self::filePath($key);

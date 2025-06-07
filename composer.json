@@ -4,7 +4,9 @@
       "App\\": "src/"
     },
     "files": [
-      "src/Config/Helpers.php"
+      "src/Config/Helpers.php",
+      "src/Core/Env.php",
+      "src/Core/Csrf.php"
     ]
   }
 }

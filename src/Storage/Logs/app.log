@@ -22,3 +22,4 @@
 [2025-05-25 13:05:23] [ERROR] Uncaught Exception: syntax error, unexpected token "}" in /home/Igris/Documents/Work/FAM/src/Core/Router.php on line 37
 [2025-05-25 15:29:35] [ERROR] Uncaught Exception: SQLSTATE[HY000] [1049] Unknown database 'FAM' in /home/Igris/Documents/Work/FAM/src/Models/User.php on line 12
 [2025-05-25 15:29:37] [ERROR] Uncaught Exception: SQLSTATE[HY000] [1049] Unknown database 'FAM' in /home/Igris/Documents/Work/FAM/src/Models/User.php on line 12
+[2025-05-25 15:59:20] [ERROR] PHP Error: file_put_contents(/home/Igris/Documents/Work/FAM/src/Config/../storage/cache/users_list.cache): Failed to open stream: No such file or directory in /home/Igris/Documents/Work/FAM/src/Config/Helpers.php on line 9

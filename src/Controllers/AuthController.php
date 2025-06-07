@@ -8,6 +8,24 @@ use App\Models\User;
 use App\Core\Session;
 
 class AuthController extends Controller {
+    public function signup() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $email = $_POST['email'] ?? '';
+            $password = $_POST['password'] ?? '';
+
+            $password = password_hash($password, PASSWORD_DEFAULT);
+            $user = User::findByEmail($email);
+            if ($user && password_verify($password, $user['password'])) {
+                Auth::login($user);
+                header('Location: /dashboard');
+                exit;
+            } else {
+                echo 'Invalid credentials';
+            }
+        }
+        return $this->render('signup', ['title' => 'Welcome!']);
+    }
+
     public function login() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $email = $_POST['email'] ?? '';

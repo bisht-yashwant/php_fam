@@ -3,7 +3,7 @@
 namespace App\Core;
 
 class Logger {
-    protected static string $logFile = __DIR__ . '/../storage/logs/app.log';
+    protected static string $logFile = __DIR__ . '/../Storage/Logs/app.log';
 
     public static function info(string $message): void {
         self::write('INFO', $message);
