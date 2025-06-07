@@ -4,6 +4,7 @@ namespace App\Core;
 
 class Logger {
     protected static string $logDir = __DIR__ . '/../Storage/Logs';
+    protected static string $adminEmail = 'yashwantsinghbisht054@gmail.com';
 
     public static function info(string $message): void {
         self::log('INFO', $message);
@@ -25,6 +26,15 @@ class Logger {
         self::log('CRITICAL', $message);
     }
 
+    protected static function notifyAdmin(string $message): void
+    {
+        $to = self::$adminEmail;
+        $subject = '🚨 Critical Error on Your App';
+        $headers = "From: FAM\r\nContent-Type: text/plain";
+
+        // someMailFunction($to, $subject, $message, $headers);
+    }
+
     public static function log(string $level, string $message): void
     {
         if (!is_dir(self::$logDir)) {
@@ -38,5 +48,9 @@ class Logger {
         $formatted = "[$timestamp] [$level] $message" . PHP_EOL;
 
         file_put_contents($logFile, $formatted, FILE_APPEND);
+
+        if ($level === 'CRITICAL') {
+            self::notifyAdmin($formatted);
+        }
     }
 }

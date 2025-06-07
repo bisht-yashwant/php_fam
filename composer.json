@@ -5,9 +5,11 @@
     },
     "files": [
       "src/Config/Helpers.php",
+      "src/Core/Auth.php",
+      "src/Core/Csrf.php",
       "src/Core/Env.php",
-      "src/Core/Log.php",
-      "src/Core/Csrf.php"
+      "src/Core/Flash.php",
+      "src/Core/Log.php"
     ]
   }
 }

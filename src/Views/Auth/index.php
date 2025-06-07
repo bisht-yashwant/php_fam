@@ -1,13 +1,52 @@
-<?php if (has_flash('success')): ?>
-    <?php flash_message('success', get_flash('success')); ?>
+<?php
+
+    use App\Core\Flash;
+    $message = "this is log";
+    log_error($message);
+    log_info("This is an info log.");
+    App\Core\Log::info("This is an info log.");
+    App\Core\Log::error("Something failed.");
+
+    if (user_can('view_users')) {
+    }
+
+    if (user_can('edit_users')) {
+    }
+
+    if (user_can('edit_posts')) {
+    }
+
+    if (user_can('delete_users')) {
+    }
+
+    if (user_can('delete_posts')) {
+    }
+
+    if (\App\Core\Auth::can('view_users')) {
+    }
+
+    if (\App\Core\Auth::can('edit_users')) {
+    }
+
+    if (\App\Core\Auth::can('edit_posts')) {
+    }
+
+    if (\App\Core\Auth::can('delete_users')) {
+    }
+
+    if (\App\Core\Auth::can('delete_posts')) {
+    }
+?>
+<?php if (Flash::has('success')): ?>
+    <?php flash_message('success', Flash::get('success')); ?>
 <?php endif; ?>
 
-<?php if (has_flash('error')): ?>
-    <?php flash_message('error', get_flash('error')); ?>
+<?php if (Flash::has('error')): ?>
+    <?php flash_message('error', Flash::get('error')); ?>
 <?php endif; ?>
 
-<?php if (has_flash('errors')): ?>
-    <?php flash_message('error', get_flash('errors')); ?>
+<?php if (Flash::has('errors')): ?>
+    <?php flash_message('error', Flash::get('errors')); ?>
 <?php endif; ?>
 
 

@@ -9,30 +9,52 @@ use App\Core\Session;
 
 class AuthController extends Controller {
     public function signup() {
+        $this->navbar = false;
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $email = $_POST['email'] ?? '';
+            $name = trim($_POST['name'] ?? '');
+            $email = trim($_POST['email'] ?? '');
             $password = $_POST['password'] ?? '';
 
-            $password = password_hash($password, PASSWORD_DEFAULT);
-            $user = User::findByEmail($email);
-            if ($user && password_verify($password, $user['password'])) {
+            // Simple validation
+            if (!$name || !$email || !$password) {
+                return $this->render('signup', [
+                    'title' => 'Sign Up',
+                    'error' => 'All fields are required.',
+                ]);
+            }
+
+            // Check if email already exists
+            if (User::findByEmail($email)) {
+                return $this->render('signup', [
+                    'title' => 'Sign Up',
+                    'error' => 'Email already exists.',
+                ]);
+            }
+
+            if (User::createUser($name, $email, $password)) {
+                $user = User::findByEmail($email);
                 Auth::login($user);
                 header('Location: /dashboard');
                 exit;
             } else {
-                echo 'Invalid credentials';
+                return $this->render('signup', [
+                    'title' => 'Sign Up',
+                    'error' => 'Something went wrong. Please try again.',
+                ]);
             }
         }
-        return $this->render('signup', ['title' => 'Welcome!']);
+
+        return $this->render('signup', ['title' => 'Sign Up']);
     }
 
     public function login() {
+        $this->navbar = false;
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $email = $_POST['email'] ?? '';
             $password = $_POST['password'] ?? '';
 
             $user = User::findByEmail($email);
-            if ($user && password_verify($password, $user['password'])) {
+            if ($user && password_verify($password, $user->password)) {
                 Auth::login($user);
                 header('Location: /dashboard');
                 exit;
@@ -48,12 +70,8 @@ class AuthController extends Controller {
         header('Location: /login');
     }
 
-    public function dashboard() {
-    	$data = cache_get('users_list');
-		if (!$data) {
-            $data = User::findByEmail("admin@admin.com");
-		    cache_put('users_list', $data, 600); // cache for 10 mins
-		}
-        return $this->render('home', ['title' => 'Welcome!']);
+    public function index() {
+        $this->useLayout = 'secondLayout';
+        return $this->render('index', ['title' => 'Welcome!']);
     }
 }
