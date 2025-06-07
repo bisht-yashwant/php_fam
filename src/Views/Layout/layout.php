@@ -40,7 +40,7 @@
                     </ul>
 
                     <div class="d-flex">
-                        <?php if (login_check()): ?>
+                        <?php if (is_logged_in()): ?>
                             <a href="/logout" class="btn btn-outline-dark mr-2">Log out</a>
                         <?php else: ?>
                             <a href="/login" class="btn btn-outline-primary mr-2">Log in</a>

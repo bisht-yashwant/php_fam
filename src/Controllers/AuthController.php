@@ -56,7 +56,7 @@ class AuthController extends Controller {
             $user = User::findByEmail($email);
             if ($user && password_verify($password, $user->password)) {
                 Auth::login($user);
-                header('Location: /dashboard');
+                header('Location: /home');
                 exit;
             } else {
                 echo 'Invalid credentials';

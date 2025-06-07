@@ -5,21 +5,33 @@ namespace App\Core{
     use App\Models\User;
 
     class Auth {
-        public static function check(): bool {
-            return !!Session::get('user_id');
+        public static function isAuthenticated(): bool {
+            $user = self::getUser();
+            if (empty($user) || !$user->is_active) {
+                self::logout();
+                return false;
+            }
+            return true;
         }
 
-        public static function user(): ?array {
-            return User::findById(self::userId());
+        public static function getUser() {
+            return User::findById(self::getUserId());
         }
 
         public static function login($user): void {
-            Session::set('user_id', $user->id);
+            if (!$user || !isset($user->id)) {
+                throw new \InvalidArgumentException("Invalid user object for login.");
+            }
             session_regenerate_id(true);
+            Session::set('user_id', $user->id);
         }
-        public static function userId(){
+
+        public static function getUserId(): ?int {
             $user_id = Session::get('user_id');
-            if(empty($user_id)){ self::logout(); }
+            if (empty($user_id)) {
+                self::logout();
+                return false;
+            }
             return $user_id;
         }
 
@@ -27,37 +39,46 @@ namespace App\Core{
             Session::destroy();
         }
 
-        public static function role() {
-            return User::getUserRole(self::userId());
+        public static function getRole(): ?string {
+            $userId = self::getUserId();
+            return $userId ? User::getUserRole($userId)->name : null;
         }
 
-        public static function hasRole(array $roles): bool {
-            return in_array(self::role(), $roles);
+        public static function hasRole(array|string $roles): bool {
+            $role = self::getRole();
+            if (is_array($roles)) {
+                return in_array($role, $roles);
+            }
+            return $role === $roles;
         }
 
-    	public static function can(string $permission): bool {
-    	    return self::role() == $permission ;
-    	}
+        public static function can(string $permission): bool {
+            $userId = self::getUserId();
+            if (!$userId) {
+                return false;
+            }
+            return PermissionManager::userCan($userId, $permission);
+        }
     }    
 }
 
 namespace {
-    function login_check() {
-        return \App\Core\Auth::check();
+    function is_logged_in(): bool {
+        return \App\Core\Auth::isAuthenticated();
     }
-    function auth_user() {
-        return \App\Core\Auth::user();
+    function current_user(): ?array {
+        return \App\Core\Auth::getUser();
     }
-    function user_role() {
-        return \App\Core\Auth::role();
+    function current_user_id(): ?int {
+        return \App\Core\Auth::getUserId();
     }
-    function user_has_role($roles) {
+    function current_user_role(): ?string {
+        return \App\Core\Auth::getRole();
+    }
+    function user_has_role(array|string $roles): bool {
         return \App\Core\Auth::hasRole($roles);
     }
-    function user_id() {
-        return \App\Core\Auth::userId();
-    }
-    function user_can($permission) {
+    function user_can(string $permission): bool {
         return \App\Core\Auth::can($permission);
     }
 }

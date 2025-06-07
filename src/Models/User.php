@@ -9,19 +9,18 @@ class User extends Model {
     protected static $table = 'users';
 
     public static function findByEmail(string $email) {
-        return self::find()->where('email', '=', $email)->one();
+        return self::where('email', '=', $email)->one();
     }
 
     public static function findById(int $id) {
-        return self::find()->where('id', '=', $id)->one();
+        return self::where('id', '=', $id)->one();
     }
 
-    public static function getUserRole($user_id): ?string {
-        return self::select(['name'])
-            ->from('user_role')
+    public static function getUserRole($user_id) {
+        return self::from('user_role')
             ->leftJoin('roles', 'user_role.role_id', '=', 'roles.id')
             ->where('user_id', '=', $user_id)
-            ->one()->name ?? null;
+            ->one() ?? null;
     }
 
     public static function createUser($name, $email, $password) {

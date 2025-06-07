@@ -8,11 +8,14 @@ use App\Core\Database;
 abstract class Model {
 
     protected $limit = '';
+    protected $offset = '';
+    protected $having = '';
     protected $orderBy = '';
     protected $groupBy = '';
     protected $asJson = false;
+    protected $distinct = false;
+    protected $timestamps = true;
 
-    // Query builder state
     protected $joins = [];
     protected $wheres = [];
     protected $orWheres = [];
@@ -20,10 +23,9 @@ abstract class Model {
     protected $selectColumns = ['*'];
     protected $aggregateColumns = '';
 
-    protected static $table = null; 
+    protected static $table = null;
     protected static $fillable = [];
     protected static $primaryKey = 'id';
-
 
     public function __construct($data = []) {
         $this->fill($data);
@@ -70,6 +72,11 @@ abstract class Model {
     }
 
     protected static function getTableName() {
+        if (self::$table) {
+            $table = self::$table;
+            self::$table = null;
+            return $table;
+        }
         return self::$table ?? strtolower((new \ReflectionClass(static::class))->getShortName()) . 's';
     }
 
@@ -139,7 +146,28 @@ abstract class Model {
         return $this;
     }
 
+    public static function beginTransaction() {
+        Database::connect()->beginTransaction();
+    }
+
+    public static function commit() {
+        Database::connect()->commit();
+    }
+
+    public static function rollback() {
+        Database::connect()->rollBack();
+    }
+
+    protected function updateTimestamps() {
+        $now = date('Y-m-d H:i:s');
+        if (!isset($this->attributes['created_at'])) {
+            $this->attributes['created_at'] = $now;
+        }
+        $this->attributes['updated_at'] = $now;
+    }
+
     public function save() {
+        if ($this->timestamps) $this->updateTimestamps();
         $table = static::getTableName();
 
         if (isset($this->attributes[static::$primaryKey])) {
@@ -160,6 +188,24 @@ abstract class Model {
         }
     }
 
+    public static function insertMany(array $rows) {
+        if (empty($rows)) return false;
+        $table = static::getTableName();
+        $columns = array_keys($rows[0]);
+        $columnString = implode(',', $columns);
+        $placeholders = '(' . implode(',', array_fill(0, count($columns), '?')) . ')';
+        $allPlaceholders = implode(',', array_fill(0, count($rows), $placeholders));
+        $sql = "INSERT INTO $table ($columnString) VALUES $allPlaceholders";
+
+        $values = [];
+        foreach ($rows as $row) {
+            foreach ($columns as $col) {
+                $values[] = $row[$col];
+            }
+        }
+        $instance = new static();
+        return $instance->runStatement($sql, $values);
+    }
     public static function delete($id) {
         $table = static::getTableName();
         $sql = "DELETE FROM $table WHERE id = ?";
@@ -228,6 +274,42 @@ abstract class Model {
         return $params;
     }
 
+    public function deleteWhere() {
+        $params = [];
+        $table = static::getTableName();
+        $sql = "DELETE FROM $table";
+        if (!empty($this->wheres)) {
+            $sql .= " WHERE " . $this->buildWhereClause();
+            $params = $this->getWhereParams();
+        }
+        return $this->runStatement($sql, $params);
+    }
+
+    public function distinct() {
+        $this->distinct = true;
+        return $this;
+    }
+
+    public function having($column, $operator, $value) {
+        $this->having = "HAVING $column $operator ?";
+        $this->wheres[] = [$column, $operator, $value];
+        return $this;
+    }
+
+    public function offset($number) {
+        $this->offset = "OFFSET $number";
+        return $this;
+    }
+
+    public function rawSelect($expression) {
+        $this->selectColumns = [$expression];
+        return $this;
+    }
+
+    public function whereRaw($condition, array $params = []) {
+        $this->wheres[] = [$condition, 'raw', $params];
+        return $this;
+    }
     public function orderBy($column, $direction = 'ASC') {
         $this->orderBy = "ORDER BY $column $direction";
         return $this;
@@ -237,7 +319,6 @@ abstract class Model {
         $this->groupBy = "GROUP BY $column";
         return $this;
     }
-    groupBy
 
     public function limit($number) {
         $this->limit = "LIMIT $number";
@@ -268,10 +349,49 @@ abstract class Model {
         return $stmt->execute($params);
     }
 
+    public function column($limit = null) {
+        return $this->get($limit, true);
+    }
+
+    public function get($limit = null, $fetchColumn = null) {
+        $params = [];
+
+        if ($limit > 1) {
+            $this->limit($limit);
+        }
+        if(!empty($this->limit) && $this->limit == "LIMIT 1"){
+            $limit = 1;
+        }
+        $sql = $this->buildSqlQuery($params);
+
+        $fetchOne = ($limit && $limit == 1);
+        $fetchAssoc = $this->asJson ? PDO::FETCH_ASSOC : PDO::FETCH_OBJ;
+        if($fetchColumn){
+            $fetchAssoc = PDO::FETCH_COLUMN;
+        }
+        return $this->executeQuery($sql, $params, $fetchOne, $fetchAssoc);
+    }
+
+    protected function executeQuery($sql, &$params = [], $fetchOne = false, $fetchAssoc = false) {
+        $pdo = Database::connect();
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+
+        if ($fetchOne) {
+            return $stmt->fetch($fetchAssoc) ?: null;
+        }
+        return $stmt->fetchAll($fetchAssoc) ?: null;
+    }
+
+    public function toSql() {
+        $params = [];
+        return $this->buildSqlQuery($params, true);
+    }
+
     protected function buildSqlQuery(&$params = [], $replaceParams = false) {
         $table = static::getTableName();
-
-        $select = $this->aggregateColumns ?? implode(', ', $this->selectColumns);
+        $select = $this->aggregateColumns ?: implode(', ', $this->selectColumns);
+        $select = ($this->distinct ? 'DISTINCT ' : '') . $select;
         $sql = "SELECT $select FROM $table";
 
         foreach ($this->joins as $join) {
@@ -288,20 +408,27 @@ abstract class Model {
                     return "{$w[0]} {$w[1]} ?";
                 }
             }, $this->wheres);
-
             $sql .= " WHERE " . implode(' AND ', $conditions);
-        }
-
-        if (!empty($this->orderBy)) {
-            $sql .= " " . $this->orderBy;
         }
 
         if (!empty($this->groupBy)) {
             $sql .= " " . $this->groupBy;
         }
 
+        if (!empty($this->having)) {
+            $sql .= " " . $this->having;
+        }
+
+        if (!empty($this->orderBy)) {
+            $sql .= " " . $this->orderBy;
+        }
+
         if (!empty($this->limit)) {
             $sql .= " " . $this->limit;
+        }
+
+        if (!empty($this->offset)) {
+            $sql .= " " . $this->offset;
         }
 
         if ($replaceParams) {
@@ -310,42 +437,6 @@ abstract class Model {
                 $sql = preg_replace('/\?/', $value, $sql, 1);
             }
         }
-
         return $sql;
-    }
-
-    protected function executeQuery($sql, &$params = [], $fetchOne = false, $fetchAssoc = false) {
-        $pdo = Database::connect();
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute($params);
-
-        $fetchType = $fetchAssoc ? PDO::FETCH_ASSOC : PDO::FETCH_OBJ;
-
-        if ($fetchOne) {
-            return $stmt->fetch($fetchType) ?: null;
-        }
-        return $stmt->fetchAll($fetchType) ?: null;
-    }
-
-    public function get($limit = null) {
-        $params = [];
-
-        if ($limit > 1) {
-            $this->limit($limit);
-        }
-        if(!empty($this->limit) && $this->limit == "LIMIT 1"){
-            $limit = 1;
-        }
-        $sql = $this->buildSqlQuery($params);
-
-        $fetchOne = ($limit && $limit == 1);
-        $fetchAssoc = $this->asJson;
-
-        return $this->executeQuery($sql, $params, $fetchOne, $fetchAssoc);
-    }
-
-    public function toSql() {
-        $params = [];
-        return $this->buildSqlQuery($params, true);
     }
 }

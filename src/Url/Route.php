@@ -6,9 +6,9 @@ $router = new Router();
 
 $router->action('/', 'Auth@index');
 $router->action('/signup', 'Auth@signup');
-$router->action('/login', 'Auth@login', ['admin', 'user']);
+$router->action('/login', 'Auth@login');
 $router->action('/logout', 'Auth@logout');
-$router->action('/dashboard', 'Home@dashboard', ['admin', 'user']);
+$router->action('/dashboard', 'Home@dashboard')->method(['GET']);
 $router->action('/home', 'Home@home');
 
 $router->action('/public', 'Auth@dashboard');

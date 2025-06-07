@@ -10,6 +10,13 @@
     <?php flash_message('error', get_flash('errors')); ?>
 <?php endif; ?>
 
+<?php 
+if (user_can('delete_posts')) {
+    echo "You can delete posts!";
+} else {
+    echo "Permission denied.";
+}?>
+
 
 <section class="jumbotron text-center">
     <div class="container">
