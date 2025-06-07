@@ -6,6 +6,7 @@
     "files": [
       "src/Config/Helpers.php",
       "src/Core/Env.php",
+      "src/Core/Log.php",
       "src/Core/Csrf.php"
     ]
   }

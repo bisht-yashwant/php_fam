@@ -7,6 +7,11 @@
 <body>
     <h1>Welcome to <?= App\Core\Config::get('app_name') ?></h1>
     <?php
+        $message = "this is log";
+        log_error($message);
+        App\Core\Log::info("This is an info log.");
+        App\Core\Log::error("Something failed.");
+
         if (\App\Core\Auth::can('view_users')) {
             echo '<br>'.'You have permission to view_users.';
         }
