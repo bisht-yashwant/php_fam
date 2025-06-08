@@ -19,7 +19,7 @@ namespace App\Core{
         }
 
         public static function login($user): void {
-            if (!$user || !isset($user->id)) {
+            if (!$user || empty($user->id)) {
                 throw new \InvalidArgumentException("Invalid user object for login.");
             }
             session_regenerate_id(true);

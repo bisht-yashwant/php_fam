@@ -1,5 +1,4 @@
 <form class="form-signup" method="POST" action="">
-    <img class="mb-4" src="https://flowbite.s3.amazonaws.com/blocks/marketing-ui/logo.svg" alt="" width="72" height="72">
     <h1 class="h3 mb-3 font-weight-normal">Sign in to your account</h1>
     
     <!-- CSRF Token -->

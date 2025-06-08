@@ -7,7 +7,7 @@ use App\Core\Auth;
 class Router
 {
     protected array $routes = [];
-    protected array $publicRoutes = ['/login', '/logout', '/signup'];
+    protected array $publicRoutes = [''];
 
     public function __construct() {
         $extraRoutes = require __DIR__ . '/../Url/PublicRoutes.php';

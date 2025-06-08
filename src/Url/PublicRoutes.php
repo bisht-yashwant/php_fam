@@ -2,5 +2,9 @@
 
 return [
     '/',
-    '/signup'
+    '/login', 
+    '/logout', 
+    '/signup', 
+    '/change-password',
+    '/forgot-password'
 ];

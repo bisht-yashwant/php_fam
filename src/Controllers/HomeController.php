@@ -2,9 +2,6 @@
 
 namespace App\Controllers;
 
-use App\Core\View;
-use App\Core\Flash;
-use App\Core\Config;
 use App\Models\User;
 use App\Core\Controller;
 
@@ -14,7 +11,7 @@ class HomeController extends Controller {
     }
 
     public function dashboard() {
-        $this->layout = false;
+        // $this->layout = false;
         $data = cache_get('users_list');
         if (!$data) {
             $data = User::findByEmail("admin@admin.com");

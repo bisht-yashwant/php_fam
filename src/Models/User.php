@@ -5,7 +5,8 @@ namespace App\Models;
 use App\Core\Model;
 
 class User extends Model {
-    protected static $fillable = ['id', 'name', 'email'];
+    protected static $fillable = ['id', 'name', 'email', 'password', 'is_active', 'token_expiry', 'password_reset_token'];
+
     protected static $table = 'users';
 
     public static function findByEmail(string $email) {

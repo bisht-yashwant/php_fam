@@ -24,3 +24,7 @@ function getEnvData($key) {
 
     return $env[$key] ?? null;
 }
+
+function getDomain(){
+    return $_SERVER['HTTP_ORIGIN']?? '';
+}

@@ -5,7 +5,7 @@ use App\Core\Config;
 use App\Core\Session;
 
 Session::start();
-Config::load(require __DIR__ . '/../Config/app.php');
+Config::load(require __DIR__ . '/../Config/App.php');
 
 $isProd = getEnvData('ENV') === 'prod';
 if ($isProd === 'prod') {

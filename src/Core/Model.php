@@ -50,18 +50,43 @@ abstract class Model {
     }
 
     public function __set($name, $value) {
-        if (in_array($name, static::$fillable)) {
-            $this->attributes[$name] = $value;
-        }
+        $this->attributes[$name] = $value;
     }
 
     public function __get($name) {
         return $this->attributes[$name] ?? null;
     }
 
+    public function __isset($key) {
+        return isset($this->attributes[$key]);
+    }
+    
+    public function getFillable() {
+        return static::$fillable;
+    }
+
     protected function fill($data) {
+        if (!$data) return [];
+
+        $results = [];
+
+        foreach ($data as $row) {
+            $model = new static();
+            $model->attributes = (array)$row; // cast to array for safety
+            $results[] = $model;
+        }
+
+        return $results;
+    }
+
+    protected function fillSingle($row) {
+        $this->attributes = (array)$row; // cast to array for safety
+        return $this;
+    }
+
+    public function load(array $data) {
         foreach ($data as $key => $value) {
-            if (in_array($key, static::$fillable)) {
+            if (in_array($key, $this->getFillable())) {
                 $this->attributes[$key] = $value;
             }
         }
@@ -80,13 +105,24 @@ abstract class Model {
         return self::$table ?? strtolower((new \ReflectionClass(static::class))->getShortName()) . 's';
     }
 
-    public static function find($id = null) {
-        if ($id !== null) {
-            $self = new static();
-            $self->_where(static::$primaryKey, "=", $id);
-            return $self->get();
+    public static function find($permission = null) {
+        $self = new static();
+
+        if ($permission !== null) {
+            if (is_array($permission)) {
+                foreach ($permission as $column => $value) {
+                    $self->_where($column, '=', $value);
+                }
+            } else {
+                // Assume it's a primary key lookup
+                $self->_where(static::$primaryKey, '=', $permission);
+            }
+
+            $self->limit(1);
+            return $self->get(1); // fetch only one result
         }
-        return new static();
+
+        return $self; // no condition, return base query builder
     }
 
     protected function _select(array $columns) {
@@ -94,23 +130,28 @@ abstract class Model {
         return $this;
     }
 
-    public function count($column = '*') {
+    public function rawSelect($expression) {
+        $this->selectColumns = [$expression];
+        return $this;
+    }
+
+    public function _count($column = '*') {
         return $this->aggregate('COUNT', $column);
     }
 
-    public function sum($column) {
+    public function _sum($column) {
         return $this->aggregate('SUM', $column);
     }
 
-    public function avg($column) {
+    public function _avg($column) {
         return $this->aggregate('AVG', $column);
     }
 
-    public function min($column) {
+    public function _min($column) {
         return $this->aggregate('MIN', $column);
     }
 
-    public function max($column) {
+    public function _max($column) {
         return $this->aggregate('MAX', $column);
     }
 
@@ -144,74 +185,6 @@ abstract class Model {
     public function join($table, $leftColumn, $operator, $rightColumn, $type = 'INNER') {
         $this->joins[] = compact('type', 'table', 'leftColumn', 'operator', 'rightColumn');
         return $this;
-    }
-
-    public static function beginTransaction() {
-        Database::connect()->beginTransaction();
-    }
-
-    public static function commit() {
-        Database::connect()->commit();
-    }
-
-    public static function rollback() {
-        Database::connect()->rollBack();
-    }
-
-    protected function updateTimestamps() {
-        $now = date('Y-m-d H:i:s');
-        if (!isset($this->attributes['created_at'])) {
-            $this->attributes['created_at'] = $now;
-        }
-        $this->attributes['updated_at'] = $now;
-    }
-
-    public function save() {
-        if ($this->timestamps) $this->updateTimestamps();
-        $table = static::getTableName();
-
-        if (isset($this->attributes[static::$primaryKey])) {
-            $columns = array_keys($this->attributes);
-            $updates = implode(', ', array_map(fn($col) => "$col = ?", $columns));
-            $values = array_values($this->attributes);
-            $values[] = $this->attributes[static::$primaryKey];
-
-            $sql = "UPDATE $table SET $updates WHERE " . static::$primaryKey . " = ?";
-            return $this->runStatement($sql, $values);
-        } else {
-            $columns = implode(',', array_keys($this->attributes));
-            $placeholders = implode(',', array_fill(0, count($this->attributes), '?'));
-            $values = array_values($this->attributes);
-
-            $sql = "INSERT INTO $table ($columns) VALUES ($placeholders)";
-            return $this->runStatement($sql, $values);
-        }
-    }
-
-    public static function insertMany(array $rows) {
-        if (empty($rows)) return false;
-        $table = static::getTableName();
-        $columns = array_keys($rows[0]);
-        $columnString = implode(',', $columns);
-        $placeholders = '(' . implode(',', array_fill(0, count($columns), '?')) . ')';
-        $allPlaceholders = implode(',', array_fill(0, count($rows), $placeholders));
-        $sql = "INSERT INTO $table ($columnString) VALUES $allPlaceholders";
-
-        $values = [];
-        foreach ($rows as $row) {
-            foreach ($columns as $col) {
-                $values[] = $row[$col];
-            }
-        }
-        $instance = new static();
-        return $instance->runStatement($sql, $values);
-    }
-    public static function delete($id) {
-        $table = static::getTableName();
-        $sql = "DELETE FROM $table WHERE id = ?";
-        
-        $instance = new static(); // to call non-static method
-        return $instance->runStatement($sql, [$id]);
     }
 
     public function _where($column, $operator, $value) {
@@ -251,6 +224,11 @@ abstract class Model {
         return $this;
     }
 
+    public function whereRaw($condition, array $params = []) {
+        $this->wheres[] = [$condition, 'raw', $params];
+        return $this;
+    }
+
     protected function buildWhereClause() {
         $conditions = array_map(function ($w) {
             if ($w[1] === 'raw' || $w[1] === 'raw_group') {
@@ -274,17 +252,6 @@ abstract class Model {
         return $params;
     }
 
-    public function deleteWhere() {
-        $params = [];
-        $table = static::getTableName();
-        $sql = "DELETE FROM $table";
-        if (!empty($this->wheres)) {
-            $sql .= " WHERE " . $this->buildWhereClause();
-            $params = $this->getWhereParams();
-        }
-        return $this->runStatement($sql, $params);
-    }
-
     public function distinct() {
         $this->distinct = true;
         return $this;
@@ -301,15 +268,6 @@ abstract class Model {
         return $this;
     }
 
-    public function rawSelect($expression) {
-        $this->selectColumns = [$expression];
-        return $this;
-    }
-
-    public function whereRaw($condition, array $params = []) {
-        $this->wheres[] = [$condition, 'raw', $params];
-        return $this;
-    }
     public function orderBy($column, $direction = 'ASC') {
         $this->orderBy = "ORDER BY $column $direction";
         return $this;
@@ -330,17 +288,165 @@ abstract class Model {
         return $this;
     }
 
+    public static function beginTransaction() {
+        Database::connect()->beginTransaction();
+    }
+
+    public static function commit() {
+        Database::connect()->commit();
+    }
+
+    public static function rollback() {
+        Database::connect()->rollBack();
+    }
+
+    protected function updateTimestamps() {
+        $now = date('Y-m-d H:i:s');
+        if (isset($this->attributes['created_at']) && $this->attributes['created_at'] != "") {
+            $this->attributes['created_at'] = $now;
+        }
+        if (isset($this->attributes['updated_at'])) {
+            $this->attributes['updated_at'] = $now;
+        }
+    }
+
+    public function save() {
+        $table = static::getTableName();
+        $primaryKey = static::$primaryKey;
+
+        $records = [];
+
+        // Detect if it's a multi-record update
+        if (isset($this->attributes[0]) && (is_array($this->attributes[0]) || is_object($this->attributes[0]))) {
+            foreach ($this->attributes as $item) {
+                if (is_array($item)) {
+                    $records[] = $item;
+                } elseif (is_object($item)) {
+                    $records[] = (array) $item;
+                }
+            }
+        } else {
+            $records[] = is_object($this->attributes) ? (array)$this->attributes : $this->attributes;
+        }
+
+        foreach ($records as $attributes) {
+            if (!is_array($attributes)) continue;
+
+            // Handle timestamps
+            if ($this->timestamps) {
+                $now = date('Y-m-d H:i:s');
+                $attributes['updated_at'] = $now;
+                if (empty($attributes[$primaryKey])) {
+                    $attributes['created_at'] = $now;
+                }
+            }
+
+            if (!empty($attributes[$primaryKey])) {
+                $columns = array_keys($attributes);
+                $updates = implode(', ', array_map(fn($col) => "$col = ?", $columns));
+                $values = array_values($attributes);
+                $values[] = $attributes[$primaryKey];
+
+                $sql = "UPDATE $table SET $updates WHERE $primaryKey = ?";
+                $this->runStatement($sql, $values);
+            } else {
+                $columns = implode(', ', array_keys($attributes));
+                $placeholders = implode(', ', array_fill(0, count($attributes), '?'));
+                $values = array_values($attributes);
+
+                $sql = "INSERT INTO $table ($columns) VALUES ($placeholders)";
+                $this->runStatement($sql, $values);
+            }
+        }
+
+        return true;
+    }
+
+    public static function insertMany(array $rows) {
+        if (empty($rows)) return false;
+        $table = static::getTableName();
+        $columns = array_keys($rows[0]);
+        $columnString = implode(',', $columns);
+        $placeholders = '(' . implode(',', array_fill(0, count($columns), '?')) . ')';
+        $allPlaceholders = implode(',', array_fill(0, count($rows), $placeholders));
+        $sql = "INSERT INTO $table ($columnString) VALUES $allPlaceholders";
+
+        $values = [];
+        foreach ($rows as $row) {
+            foreach ($columns as $col) {
+                $values[] = $row[$col];
+            }
+        }
+        $instance = new static();
+        return $instance->runStatement($sql, $values);
+    }
+
+    public function delete($id = null) {
+        $table = static::getTableName();
+        $primaryKey = static::$primaryKey;
+
+        // If an ID is explicitly passed
+        if ($id !== null) {
+            $sql = "DELETE FROM $table WHERE $primaryKey = ?";
+            return $this->runStatement($sql, [$id]);
+        }
+
+        // If the model has attributes loaded
+        $records = [];
+
+        if (isset($this->attributes[0]) && (is_array($this->attributes[0]) || is_object($this->attributes[0]))) {
+            foreach ($this->attributes as $item) {
+                if (is_object($item)) {
+                    $item = (array) $item;
+                }
+                if (!empty($item[$primaryKey])) {
+                    $records[] = $item[$primaryKey];
+                }
+            }
+        } else {
+            $attrs = is_object($this->attributes) ? (array) $this->attributes : $this->attributes;
+            if (!empty($attrs[$primaryKey])) {
+                $records[] = $attrs[$primaryKey];
+            }
+        }
+
+        // Delete each record
+        foreach ($records as $pkValue) {
+            $sql = "DELETE FROM $table WHERE $primaryKey = ?";
+            $this->runStatement($sql, [$pkValue]);
+        }
+
+        return true;
+    }
+
+    public function deleteWhere() {
+        $params = [];
+        $table = static::getTableName();
+        $sql = "DELETE FROM $table";
+        if (!empty($this->wheres)) {
+            $sql .= " WHERE " . $this->buildWhereClause();
+            $params = $this->getWhereParams();
+        }
+        return $this->runStatement($sql, $params);
+    }
+
     public function _first() {
         return $this->one();
     }
 
     public function _one() {
-        $results = $this->get('1');
+        $results = $this->get(1);
         return $results ?? null;
     }
 
     public function _sql(){
         return $this->toSql();
+    }
+
+    public static function rawSql($sql){
+        $params = [];
+        $model = new static();
+        return $model->executeQuery($sql, $params, false, PDO::FETCH_ASSOC);
     }
 
     protected function runStatement($sql, $params = []) {
@@ -359,17 +465,24 @@ abstract class Model {
         if ($limit > 1) {
             $this->limit($limit);
         }
-        if(!empty($this->limit) && $this->limit == "LIMIT 1"){
-            $limit = 1;
-        }
-        $sql = $this->buildSqlQuery($params);
 
-        $fetchOne = ($limit && $limit == 1);
+        $sql = $this->buildSqlQuery($params);
         $fetchAssoc = $this->asJson ? PDO::FETCH_ASSOC : PDO::FETCH_OBJ;
-        if($fetchColumn){
-            $fetchAssoc = PDO::FETCH_COLUMN;
+        if ($fetchColumn) {
+            return $this->executeQuery($sql, $params, false, PDO::FETCH_COLUMN);
         }
-        return $this->executeQuery($sql, $params, $fetchOne, $fetchAssoc);
+
+        // Run query and fetch results
+        $result = $this->executeQuery($sql, $params, false, $fetchAssoc);
+
+        // If only one row and limit is 1, return a single model
+        if ($limit === 1 || (!empty($this->limit) && $this->limit === 'LIMIT 1')) {
+            if (!$result || count($result) === 0) return null;
+            return (new static())->fillSingle($result[0]);  // use helper
+        }
+
+        // Return multiple models
+        return $this->asJson ? $result : $this->fill($result) ;
     }
 
     protected function executeQuery($sql, &$params = [], $fetchOne = false, $fetchAssoc = false) {
@@ -385,7 +498,7 @@ abstract class Model {
 
     public function toSql() {
         $params = [];
-        return $this->buildSqlQuery($params, true);
+        return $this->buildSqlQuery($params, replaceParams: true);
     }
 
     protected function buildSqlQuery(&$params = [], $replaceParams = false) {

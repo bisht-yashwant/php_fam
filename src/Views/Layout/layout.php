@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="/assets/css/bootstrap.css">
+    <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
     
     <!-- Optional: Your own CSS -->
     <link rel="stylesheet" href="/assets/css/style.css">
@@ -20,7 +20,6 @@
         <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm w-100">
             <div class="container">
                 <a class="navbar-brand d-flex align-items-center" href="/">
-                    <img src="https://flowbite.com/docs/images/logo.svg" alt="Logo" class="me-2" style="height: 30px;">
                     <?= App\Core\Config::get('app_name') ?>
                 </a>
 
@@ -70,7 +69,7 @@
     <?= $this->content ?? '<p>No content available.</p>' ?>
 </main>
 
-<!-- Bootstrap JS -->
+<!-- Jquery -->
 <script src="/assets/js/jquery.min.js"></script>
 
 </body>

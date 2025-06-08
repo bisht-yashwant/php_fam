@@ -1,5 +1,4 @@
 <form class="form-signin" method="POST" action="">
-    <img class="mb-4" src="https://flowbite.s3.amazonaws.com/blocks/marketing-ui/logo.svg" alt="" width="72" height="72">
     <h1 class="h3 mb-3 font-weight-normal">Sign in to your account</h1>
 
     <!-- CSRF Token -->
@@ -26,12 +25,8 @@
     </div>
 
     <!-- Remember & Forgot -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <div class="form-check text-left">
-            <input type="checkbox" class="form-check-input" id="remember">
-            <label class="form-check-label" for="remember">Remember me</label>
-        </div>
-        <a href="#" class="small">Forgot password?</a>
+    <div class="d-flex justify-content-end align-items-center mb-3">
+        <a href="/forgot-password" class="small">Forgot password?</a>
     </div>
 
     <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>

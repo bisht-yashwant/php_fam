@@ -54,9 +54,9 @@ class Console
             $sql = file_get_contents($sqlFile);
             $pdo->exec($sql);
 
-            echo "✅ Database seeded successfully.\n";
+            echo "[-] Database seeded successfully.\n";
         } catch (\PDOException $e) {
-            echo "❌ Database error: " . $e->getMessage() . "\n";
+            echo "[X] Database error: " . $e->getMessage() . "\n";
         }
     }
 
