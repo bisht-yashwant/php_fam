@@ -53,13 +53,26 @@ jobs:
       - name: Smoke test
         run: |
           for i in {1..10}; do
-            if curl -f http://localhost; then
+            if curl -f http://fam.localhost; then
               exit 0
             fi
             sleep 2
           done
-          docker compose logs
+          docker compose -f docker-compose-prod.yml logs
           exit 1
+
+      - name: Login to Docker Hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Tag images
+        run: |
+          docker tag fam-php ${{ secrets.DOCKER_USERNAME }}/fam-php:latest
+          docker tag fam-caddy ${{ secrets.DOCKER_USERNAME }}/fam-caddy:latest
+
+      - name: Push images
+        run: |
+          docker push ${{ secrets.DOCKER_USERNAME }}/fam-php:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/fam-caddy:latest
 
       # Cleanup
       - name: Cleanup
