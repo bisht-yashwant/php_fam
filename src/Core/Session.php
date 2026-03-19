@@ -4,18 +4,16 @@ namespace App\Core;
 
 class Session {
     public static function start(): void {
-        if (session_status() === PHP_SESSION_NONE) {
+        if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
             session_start();
         }
     }
 
     public static function set(string $key, mixed $value): void {
-        self::start();
         $_SESSION[$key] = $value;
     }
 
     public static function get(string $key, mixed $default = null): mixed {
-        self::start();
         return $_SESSION[$key] ?? $default;
     }
 
@@ -47,11 +45,16 @@ class Session {
     }
 
     public static function destroy(): void {
-        self::start();
+
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            return;
+        }
+
         $_SESSION = [];
 
         if (ini_get("session.use_cookies")) {
             $params = session_get_cookie_params();
+
             setcookie(
                 session_name(),
                 '',

@@ -16,4 +16,4 @@ $router->action('/home', 'Home@home');
 $router->action('/dashboard', 'Home@dashboard')->permission(['view_users', 'edit_posts'], 'permissions')->method(['GET', 'POST']);
 $router->action('/public', 'Auth@dashboard');
 
-$router->dispatch($_SERVER['REQUEST_METHOD'], $_SERVER['PATH_INFO']?? '/');
+$router->dispatch($_SERVER['REQUEST_METHOD'], rtrim(str_replace('/index.php', '', parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? '/'), '/') ?: '/');

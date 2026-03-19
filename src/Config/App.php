@@ -2,7 +2,7 @@
 
 return [
     'app_name' => 'Fam',
-    'app_url' => 'http://localhost:9100/',
+    'app_url' => 'http://localhost/',
     'debug' => true,
     'base_url' => 'http://localhost'
 ];
