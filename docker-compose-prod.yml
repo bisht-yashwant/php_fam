@@ -1,7 +1,7 @@
 services:
 
   php:
-    image: fam-app
+    image: fam-php
     container_name: FAM-php
     expose:
       - "9000"
