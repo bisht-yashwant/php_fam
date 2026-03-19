@@ -3,3 +3,10 @@
 
 # composer
 /vendor
+
+# local certificates
+docker/ssl/*.crt
+docker/ssl/*.key
+
+# Internal logs
+src/Storage/*

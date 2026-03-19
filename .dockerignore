@@ -1,0 +1,17 @@
+# Git
+.git
+.gitignore
+
+# Env
+.env
+
+# Composers
+vendor
+node_modules
+
+# Runtime
+src/Storage
+
+# Docker ssl
+docker/ssl/*.crt
+docker/ssl/*.key

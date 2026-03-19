@@ -1,0 +1,5 @@
+fam.localhost {
+    tls /etc/caddy/certs/fam.localhost.crt /etc/caddy/certs/fam.localhost.key
+
+    reverse_proxy php:80
+}

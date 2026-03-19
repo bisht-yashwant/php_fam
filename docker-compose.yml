@@ -1,0 +1,57 @@
+services:
+
+  php:
+    build: 
+      context: .
+      dockerfile: docker/php/DockerfileDev
+    container_name: FAM-php
+    user: "${LOCAL_UID}:${LOCAL_GID}"
+    networks:
+      - appnet
+    volumes:
+      - ./:/app
+      - /app/vendor
+      - ./docker/apache/apache.conf:/etc/apache2/sites-enabled/000-default.conf
+    depends_on:
+      - db
+    env_file:
+      - ./.env
+
+  db:
+    image: mysql:latest
+    container_name: FAM-db
+    networks:
+      - appnet
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "3233:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./database/seed.sql:/docker-entrypoint-initdb.d/schema.sql
+
+  caddy:
+    image: caddy:2
+    container_name: FAM-caddy
+    networks:
+      - appnet
+    ports:
+      - "80:80"
+      - "443:443"
+    
+    volumes:
+      - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile
+      - ./docker/ssl:/etc/caddy/certs
+      - caddy_data:/data
+      - caddy_config:/config
+
+networks:
+  appnet:
+
+volumes:
+  db_data:
+  caddy_data:
+  caddy_config:
