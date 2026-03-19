@@ -11,5 +11,9 @@
       "src/Core/Flash.php",
       "src/Core/Log.php"
     ]
+  },
+  "require-dev": {
+    "phpstan/phpstan": "*",
+    "friendsofphp/php-cs-fixer": "*"
   }
 }
