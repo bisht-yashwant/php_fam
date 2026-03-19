@@ -34,15 +34,8 @@ class Console
 
     protected function seedDatabase()
     {
-        // $config = require __DIR__ . '/../config/database.php';
-
-        $dsn = getEnvData('DB_HOST');
-        $username = getEnvData('DB_USERNAME');
-        $password = getEnvData('DB_PASSWORD');
-
         try {
-            $pdo = new \PDO($dsn, $username, $password);
-            $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+            $pdo = \App\Core\Database::connect();
 
             $sqlFile = __DIR__ . '/../../database/seed.sql';
 
@@ -55,6 +48,7 @@ class Console
             $pdo->exec($sql);
 
             echo "[-] Database seeded successfully.\n";
+
         } catch (\PDOException $e) {
             echo "[X] Database error: " . $e->getMessage() . "\n";
         }
