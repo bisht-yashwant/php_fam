@@ -49,13 +49,6 @@ jobs:
       - name: Start containers
         run: docker compose -f docker-compose-prod.yml up -d
 
-      # Wait for DB (better version)
-      - name: Wait for DB
-        run: |
-          until docker compose exec -T db mysqladmin ping -h localhost -uroot -p$MYSQL_ROOT_PASSWORD --silent; do
-            sleep 2
-          done
-
       # Smoke test
       - name: Smoke test
         run: |
