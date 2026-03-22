@@ -14,13 +14,13 @@ jobs:
       DB_HOST: ${{ vars.DB_HOST }}
       DB_PORT: ${{ vars.DB_PORT }}
       DB_NAME: ${{ vars.DB_NAME }}
-      DB_USERNAME: ${{ vars.DB_USERNAME }}
-      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      DB_USERNAME: ${{ vars.MYSQL_ROOT_USERNAME }}
+      DB_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
 
       MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
       MYSQL_DATABASE: ${{ vars.DB_NAME }}
       MYSQL_USER: ${{ vars.DB_USERNAME }}
-      MYSQL_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      MYSQL_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
 
     steps:
 
@@ -53,7 +53,7 @@ jobs:
       - name: Smoke test
         run: |
           for i in {1..10}; do
-            if curl -f http://fam.localhost; then
+            if curl -f http://localhost; then
               exit 0
             fi
             sleep 2

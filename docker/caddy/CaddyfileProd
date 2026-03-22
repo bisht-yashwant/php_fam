@@ -1,4 +1,4 @@
-fam.localhost {
+localhost {
     root * /var/www/html/public
 
     encode gzip
@@ -8,6 +8,4 @@ fam.localhost {
     file_server
 
     try_files {path} {path}/ /index.php?{query}
-
-    tls /etc/caddy/certs/fam.localhost.crt /etc/caddy/certs/fam.localhost.key
 }
